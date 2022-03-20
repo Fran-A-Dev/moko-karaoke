@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Select from "react-select";
 import { useCollection } from "../../hooks/useCollection";
+import { timestamp } from "../../firebase/config";
+import { useAuthContext } from "../../hooks/useAuthContext";
 // styles
 import "./Create.css";
 const categories = [
@@ -12,12 +14,14 @@ const categories = [
 export default function Create() {
   const { documents } = useCollection("users");
   const [users, setUsers] = useState([]);
+  const { user } = useAuthContext();
   // form field values
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [upNext, setUpNext] = useState("");
   const [category, setCategory] = useState("");
   const [assignedUsers, setAssignedUsers] = useState([]);
+  const [formError, setFormError] = useState(null);
 
   // create user values for react-select
   useEffect(() => {
@@ -32,8 +36,40 @@ export default function Create() {
   // console.log(users)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError(null);
 
-    console.log(name, details, upNext, category.value, assignedUsers);
+    if (!category) {
+      setFormError("Please select a genre");
+      return;
+    }
+
+    if (assignedUsers.length < 1) {
+      setFormError("Please assign the song to at least 1 user");
+      return;
+    }
+    const assignedUsersList = assignedUsers.map((u) => {
+      return {
+        displayName: u.value.displayName,
+        photoURL: u.value.photoURL,
+        id: u.value.id,
+      };
+    });
+    const createdBy = {
+      displayName: user.displayName,
+      photoUrl: user.photoUrl,
+      id: user.id,
+    };
+    const song = {
+      name,
+      details,
+      category: category.value,
+      upNext: timestamp.fromDate(new Date(upNext)),
+      comments: [],
+      createdBy,
+      assignedUsersList,
+    };
+
+    console.log(song);
   };
 
   return (
@@ -82,6 +118,8 @@ export default function Create() {
           />
         </label>
         <button className="btn">Add Song</button>
+
+        {formError && <p className="error">{formError}</p>}
       </form>
     </div>
   );
