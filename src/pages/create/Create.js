@@ -3,6 +3,8 @@ import Select from "react-select";
 import { useCollection } from "../../hooks/useCollection";
 import { timestamp } from "../../firebase/config";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useFirestore } from "../../hooks/useFirestore";
+import { useHistory } from "react-router";
 // styles
 import "./Create.css";
 const categories = [
@@ -12,6 +14,8 @@ const categories = [
   { value: "oldies", label: "Oldies" },
 ];
 export default function Create() {
+  const history = useHistory();
+  const { addDocument, response } = useFirestore("songs");
   const { documents } = useCollection("users");
   const [users, setUsers] = useState([]);
   const { user } = useAuthContext();
@@ -69,7 +73,10 @@ export default function Create() {
       assignedUsersList,
     };
 
-    console.log(song);
+    await addDocument(song);
+    if (!response.error) {
+      history.push("/");
+    }
   };
 
   return (
