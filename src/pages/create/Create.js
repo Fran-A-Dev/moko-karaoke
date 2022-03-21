@@ -1,28 +1,32 @@
 import { useState, useEffect } from "react";
-import Select from "react-select";
 import { useCollection } from "../../hooks/useCollection";
-import { timestamp } from "../../firebase/config";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { timestamp } from "../../firebase/config";
 import { useFirestore } from "../../hooks/useFirestore";
 import { useHistory } from "react-router";
+import Select from "react-select";
+
 // styles
 import "./Create.css";
+
 const categories = [
-  { value: "indie rock", label: "Indie Rock" },
   { value: "pop", label: "Pop" },
   { value: "hip-hop", label: "Hip-Hop" },
   { value: "oldies", label: "Oldies" },
+  { value: "rock", label: "Rock" },
 ];
+
 export default function Create() {
   const history = useHistory();
-  const { addDocument, response } = useFirestore("songs");
+  const { addDocument, response } = useFirestore("projects");
+  const { user } = useAuthContext();
   const { documents } = useCollection("users");
   const [users, setUsers] = useState([]);
-  const { user } = useAuthContext();
+
   // form field values
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
-  const [upNext, setUpNext] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [category, setCategory] = useState("");
   const [assignedUsers, setAssignedUsers] = useState([]);
   const [formError, setFormError] = useState(null);
@@ -37,20 +41,20 @@ export default function Create() {
       );
     }
   }, [documents]);
-  // console.log(users)
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
 
     if (!category) {
-      setFormError("Please select a genre");
+      setFormError("Please select a project category.");
+      return;
+    }
+    if (assignedUsers.length < 1) {
+      setFormError("Please assign the project to at least 1 user");
       return;
     }
 
-    if (assignedUsers.length < 1) {
-      setFormError("Please assign the song to at least 1 user");
-      return;
-    }
     const assignedUsersList = assignedUsers.map((u) => {
       return {
         displayName: u.value.displayName,
@@ -60,20 +64,21 @@ export default function Create() {
     });
     const createdBy = {
       displayName: user.displayName,
-      photoUrl: user.photoUrl,
-      id: user.id,
-    };
-    const song = {
-      name,
-      details,
-      category: category.value,
-      upNext: timestamp.fromDate(new Date(upNext)),
-      comments: [],
-      createdBy,
-      assignedUsersList,
+      photoURL: user.photoURL,
+      id: user.uid,
     };
 
-    await addDocument(song);
+    const project = {
+      name,
+      details,
+      assignedUsersList,
+      createdBy,
+      category: category.value,
+      dueDate: timestamp.fromDate(new Date(dueDate)),
+      comments: [],
+    };
+
+    await addDocument(project);
     if (!response.error) {
       history.push("/");
     }
@@ -81,10 +86,10 @@ export default function Create() {
 
   return (
     <div className="create-form">
-      <h2 className="page-title">Create Song</h2>
+      <h2 className="page-title">Add a song to sing!</h2>
       <form onSubmit={handleSubmit}>
         <label>
-          <span>Song name:</span>
+          <span>Song Name:</span>
           <input
             required
             type="text"
@@ -101,12 +106,12 @@ export default function Create() {
           ></textarea>
         </label>
         <label>
-          <span>Song On Deck Due:</span>
+          <span>Set Karaoke Date:</span>
           <input
             required
-            type="number"
-            onChange={(e) => setUpNext(e.target.value)}
-            value={upNext}
+            type="date"
+            onChange={(e) => setDueDate(e.target.value)}
+            value={dueDate}
           />
         </label>
         <label>
@@ -124,7 +129,8 @@ export default function Create() {
             isMulti
           />
         </label>
-        <button className="btn">Add Song</button>
+
+        <button className="btn">Add Song to Que</button>
 
         {formError && <p className="error">{formError}</p>}
       </form>
