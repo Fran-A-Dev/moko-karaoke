@@ -9,7 +9,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Create from "./pages/create/Create";
 import Login from "./pages/login/Login";
 import Signup from "./pages/signup/Signup";
-import Song from "./pages/song/Song";
+import Project from "./pages/project/Project";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import OnlineUsers from "./components/OnlineUsers";
@@ -35,7 +35,7 @@ function App() {
               </Route>
               <Route path="/song/:id">
                 {!user && <Redirect to="/login" />}
-                {user && <Song />}
+                {user && <Project />}
               </Route>
               <Route path="/login">
                 {user && <Redirect to="/" />}
