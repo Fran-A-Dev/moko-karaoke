@@ -33,7 +33,7 @@ function App() {
                 {!user && <Redirect to="/login" />}
                 {user && <Create />}
               </Route>
-              <Route path="/song/:id">
+              <Route path="/projects/:id">
                 {!user && <Redirect to="/login" />}
                 {user && <Project />}
               </Route>
