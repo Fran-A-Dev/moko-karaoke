@@ -47,11 +47,11 @@ export default function Create() {
     setFormError(null);
 
     if (!category) {
-      setFormError("Please select a project category.");
+      setFormError("Please select a song category.");
       return;
     }
     if (assignedUsers.length < 1) {
-      setFormError("Please assign the project to at least 1 user");
+      setFormError("Please assign the song to at least 1 user");
       return;
     }
 
